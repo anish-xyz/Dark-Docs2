@@ -344,15 +344,15 @@
         <label class="strategy-card selected" id="cardTargeted" data-strategy="targeted">
           <input type="radio" name="strategy" value="targeted" checked />
           <div class="strategy-info">
-            <h3>Targeted Override <span class="strategy-badge badge-precise">Recommended</span></h3>
-            <p>Dark backgrounds + light text on each element. Images stay true-color. Canvas tiles use filter fallback.</p>
+            <h3>Smart Inversion <span class="strategy-badge badge-precise">Recommended</span></h3>
+            <p>Inverts entire page + restores images &amp; media via double-invert. Fine-tuned colors for links, selections, and scrollbars.</p>
           </div>
         </label>
         <label class="strategy-card" id="cardFilter" data-strategy="filter">
           <input type="radio" name="strategy" value="filter" />
           <div class="strategy-info">
-            <h3>CSS Filter <span class="strategy-badge badge-quick">Quick</span></h3>
-            <p>Inverts the entire editor canvas. Images will appear inverted (Docs renders them as canvas pixels, not &lt;img&gt; tags).</p>
+            <h3>Full Inversion <span class="strategy-badge badge-quick">Simple</span></h3>
+            <p>Inverts entire page uniformly. Everything goes dark, but all images and media also appear inverted.</p>
           </div>
         </label>
       </div>
@@ -361,13 +361,7 @@
     <!-- Image info notice -->
     <div class="notice" id="imageNotice">
       <span class="notice-icon">🖼️</span>
-      <span id="imageNoticeText">Targeted mode keeps images true-color. Only canvas-rendered text tiles use filter inversion.</span>
-    </div>
-
-    <!-- Canvas detection notice -->
-    <div class="notice hidden" id="canvasNotice">
-      <span class="notice-icon">ℹ️</span>
-      <span>Canvas rendering detected — text tiles use filter fallback (images in canvas tiles will also be affected).</span>
+      <span id="imageNoticeText">Smart mode restores images that exist as DOM elements. Canvas-rendered images may still be affected.</span>
     </div>
   </div>
 

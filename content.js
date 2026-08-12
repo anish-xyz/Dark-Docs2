@@ -3,11 +3,13 @@
  *
  * Responsibilities:
  *   1. Read persisted state from chrome.storage.local
- *   2. Apply/remove the correct body class for the selected strategy
+ *   2. Apply/remove the correct class on <html> (documentElement)
  *   3. Observe DOM mutations (Docs re-renders on scroll/edit)
  *   4. Handle SPA navigation (URL changes without full reload)
  *   5. Listen for messages from popup to toggle state in real-time
- *   6. Theme top chrome (toolbar/menu) in both strategies
+ *
+ * The filter is applied at the <html> level so the ENTIRE
+ * Google Docs window goes dark — not just the editor canvas.
  */
 
 (function () {
@@ -39,28 +41,29 @@
   }
 
   // ── Apply / Remove Dark Mode ─────────────────────────────────────
+  // Classes go on <html> (documentElement) so the filter applies
+  // to the ENTIRE page, including all chrome/toolbars.
+
   function applyDarkMode() {
-    const body = document.body;
-    if (!body) return;
+    const root = document.documentElement;
+    if (!root) return;
 
     // Remove both strategy classes first
-    body.classList.remove(CLASSES.filter, CLASSES.targeted);
+    root.classList.remove(CLASSES.filter, CLASSES.targeted);
 
     if (!currentState.enabled) return;
 
-    const strategy = currentState.strategy;
-
-    if (strategy === 'filter') {
-      body.classList.add(CLASSES.filter);
-    } else if (strategy === 'targeted') {
-      body.classList.add(CLASSES.targeted);
+    if (currentState.strategy === 'filter') {
+      root.classList.add(CLASSES.filter);
+    } else {
+      root.classList.add(CLASSES.targeted);
     }
   }
 
   function removeDarkMode() {
-    const body = document.body;
-    if (!body) return;
-    body.classList.remove(CLASSES.filter, CLASSES.targeted);
+    const root = document.documentElement;
+    if (!root) return;
+    root.classList.remove(CLASSES.filter, CLASSES.targeted);
   }
 
   // ── Storage Read/Write ───────────────────────────────────────────
@@ -80,33 +83,26 @@
     );
   }
 
-  function saveState() {
-    const data = {};
-    data[STORAGE_KEYS.enabled] = currentState.enabled;
-    data[STORAGE_KEYS.strategy] = currentState.strategy;
-    chrome.storage.local.set(data);
-  }
-
   // ── MutationObserver ─────────────────────────────────────────────
   // Google Docs aggressively re-renders DOM nodes on scroll, edit,
   // and page transitions. We observe the editor container and
-  // re-apply our classes if Docs strips them or re-creates the tree.
+  // re-apply our classes if Docs somehow strips them.
 
   let observer = null;
 
   function startObserver() {
     if (observer) observer.disconnect();
 
+    // Observe both the editor and the document element
     const target = document.querySelector('.kix-appview-editor') || document.body;
 
-    observer = new MutationObserver((mutations) => {
-      // Check if our dark mode classes are still present on body
+    observer = new MutationObserver(() => {
       if (currentState.enabled) {
-        const body = document.body;
+        const root = document.documentElement;
         const expectedClass =
           currentState.strategy === 'filter' ? CLASSES.filter : CLASSES.targeted;
 
-        if (!body.classList.contains(expectedClass)) {
+        if (!root.classList.contains(expectedClass)) {
           applyDarkMode();
         }
       }
@@ -120,15 +116,13 @@
 
   // ── SPA Navigation Handler ───────────────────────────────────────
   // Google Docs is a single-page app. When switching documents via
-  // links or the browser back/forward buttons, the URL changes but
-  // the page doesn't fully reload. We detect this and re-apply state.
+  // links or browser back/forward, the URL changes without reload.
 
   let lastUrl = location.href;
 
   function onUrlChange() {
     if (location.href !== lastUrl) {
       lastUrl = location.href;
-      // Re-load state and re-apply (user may have toggled per-tab)
       loadState(() => {
         if (currentState.enabled) {
           applyDarkMode();
@@ -140,13 +134,10 @@
     }
   }
 
-  // Intercept pushState / replaceState since they don't fire events
   function watchNavigation() {
-    // Listen to popstate for back/forward
     window.addEventListener('popstate', onUrlChange);
     window.addEventListener('hashchange', onUrlChange);
 
-    // Intercept pushState / replaceState
     const originalPushState = history.pushState;
     const originalReplaceState = history.replaceState;
 
@@ -184,7 +175,6 @@
       });
     }
 
-    // Return true to indicate async response potential
     return true;
   });
 
@@ -224,7 +214,7 @@
 
     watchNavigation();
 
-    // Also re-apply when the DOM is fully ready (Docs can be slow)
+    // Re-apply when DOM is fully ready (Docs can be slow to load)
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         loadState(() => {

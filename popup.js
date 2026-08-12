@@ -21,8 +21,6 @@
   const statusText = document.getElementById('statusText');
   const cardTargeted = document.getElementById('cardTargeted');
   const cardFilter = document.getElementById('cardFilter');
-  const canvasNotice = document.getElementById('canvasNotice');
-  const imageNotice = document.getElementById('imageNotice');
   const imageNoticeText = document.getElementById('imageNoticeText');
   const notDocs = document.getElementById('notDocs');
   const mainContent = document.getElementById('mainContent');
@@ -43,20 +41,13 @@
     cardTargeted.classList.toggle('selected', state.strategy === 'targeted');
     cardFilter.classList.toggle('selected', state.strategy === 'filter');
 
-    // Image notice — update text based on strategy
+    // Image notice
     if (state.strategy === 'filter') {
       imageNoticeText.textContent =
-        'Filter mode inverts the entire editor — images will appear inverted. Docs renders them as canvas pixels, so CSS cannot selectively un-invert.';
+        'Full inversion mode — all images and media will appear inverted along with the page.';
     } else {
       imageNoticeText.textContent =
-        'Targeted mode keeps images true-color. Only canvas-rendered text tiles use filter inversion.';
-    }
-
-    // Canvas notice
-    if (state.isCanvas && state.strategy === 'targeted') {
-      canvasNotice.classList.remove('hidden');
-    } else {
-      canvasNotice.classList.add('hidden');
+        'Smart mode restores images that exist as DOM elements. Canvas-rendered images may still be affected.';
     }
   }
 
@@ -75,22 +66,8 @@
 
     chrome.storage.local.set(data);
 
-    // Update status indicator
-    statusDot.classList.toggle('active', state.enabled);
-    statusText.textContent = state.enabled ? 'Dark mode on' : 'Dark mode off';
-
-    // Update card selection
-    cardTargeted.classList.toggle('selected', state.strategy === 'targeted');
-    cardFilter.classList.toggle('selected', state.strategy === 'filter');
-
-    // Update image notice
-    if (state.strategy === 'filter') {
-      imageNoticeText.textContent =
-        'Filter mode inverts the entire editor — images will appear inverted. Docs renders them as canvas pixels, so CSS cannot selectively un-invert.';
-    } else {
-      imageNoticeText.textContent =
-        'Targeted mode keeps images true-color. Only canvas-rendered text tiles use filter inversion.';
-    }
+    // Update UI
+    updateUI(state);
 
     // Notify active tab's content script
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -114,7 +91,6 @@
 
   // ── Initialization ────────────────────────────────────────────────
 
-  // Check if the active tab is a Google Docs document
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
     const isDocsTab =
@@ -133,22 +109,17 @@
         const state = {
           enabled: result[STORAGE_KEYS.enabled] || false,
           strategy: result[STORAGE_KEYS.strategy] || 'targeted',
-          isCanvas: false,
         };
 
         updateUI(state);
 
-        // Also query the content script for canvas detection status
+        // Query content script for additional info
         chrome.tabs.sendMessage(
           tab.id,
           { type: 'GDOCS_DARK_GET_STATE' },
           (response) => {
-            if (chrome.runtime.lastError) {
-              // Content script not yet injected — that's ok
-              return;
-            }
+            if (chrome.runtime.lastError) return;
             if (response) {
-              state.isCanvas = response.isCanvas;
               updateUI({ ...state, ...response });
             }
           }
