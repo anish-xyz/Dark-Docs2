@@ -1,0 +1,169 @@
+/*
+ * Dark Mode for Google Docs — CSS Stylesheet
+ *
+ * Both strategies apply filter: invert() at the <html> level
+ * so the ENTIRE Google Docs window goes dark — titlebar, menubar,
+ * toolbar, ruler, editor canvas, sidebars, dialogs, everything.
+ *
+ * Classes are added to <html> (documentElement), not <body>.
+ *
+ * Two strategies:
+ *   .gdocs-dark-filter   → Simple full inversion, no image restoration
+ *   .gdocs-dark-targeted → Full inversion + double-invert images + 
+ *                           fine-tuned color corrections
+ */
+
+
+/* ============================================================
+ * STRATEGY 1: Full CSS Filter Inversion
+ * Inverts the entire page. Quick, comprehensive, everything dark.
+ * Images (including in-document) will appear inverted.
+ * ============================================================ */
+
+html.gdocs-dark-filter {
+  filter: invert(0.92) hue-rotate(180deg) !important;
+}
+
+
+/* ============================================================
+ * STRATEGY 2: Smart Inversion (Targeted)
+ * Same full-page inversion as Strategy 1, BUT additionally:
+ *   - Double-inverts <img>, <video>, embedded objects to restore
+ *     their true colors wherever they exist as actual DOM nodes
+ *   - Fine-tunes specific UI element colors for polish
+ *   
+ * NOTE: Images rendered as canvas pixels (newer Google Docs 
+ * canvas rendering) are part of the <canvas> bitmap and CANNOT
+ * be selectively un-inverted via CSS. This is a fundamental
+ * platform limitation. Those images will still appear inverted.
+ * ============================================================ */
+
+html.gdocs-dark-targeted {
+  filter: invert(0.92) hue-rotate(180deg) !important;
+}
+
+
+/* ============================================================
+ * IMAGE RESTORATION (Targeted strategy only)
+ * Double-invert media elements that exist as actual DOM nodes
+ * to restore their original colors.
+ * ============================================================ */
+
+/* --- All <img> elements (doc images, avatars, logos) --- */
+html.gdocs-dark-targeted img {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* --- Video and iframe embeds --- */
+html.gdocs-dark-targeted video,
+html.gdocs-dark-targeted iframe {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* --- Google Docs embedded objects (images, charts, drawings) ---
+ * These are DOM overlays that Docs positions on top of the canvas.
+ * If the image is rendered as a separate DOM element inside
+ * the embedded object container, this will restore it. */
+html.gdocs-dark-targeted .kix-embeddedobject,
+html.gdocs-dark-targeted .kix-embeddedobject-overlay {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* --- Inline drawing overlays --- */
+html.gdocs-dark-targeted .kix-inlinedrawing {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* --- User profile / avatar images --- */
+html.gdocs-dark-targeted .docs-titlebar-share-client-photo,
+html.gdocs-dark-targeted .gb_Nc,
+html.gdocs-dark-targeted .docs-presence-plus-image {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* --- Google account menu avatar --- */
+html.gdocs-dark-targeted .gbii,
+html.gdocs-dark-targeted .gb_7a {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* --- Header / app branding images --- */
+html.gdocs-dark-targeted .docs-homescreen-header-logo img,
+html.gdocs-dark-targeted .doc-icon img {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+
+/* ============================================================
+ * FINE-TUNED COLOR CORRECTIONS (Targeted strategy only)
+ * After full-page inversion, some elements may have weird hues.
+ * These overrides normalize them for a polished dark theme.
+ * ============================================================ */
+
+/* --- Page shadow (inverted white → dark, but we want a subtle dark shadow) --- */
+html.gdocs-dark-targeted .kix-page {
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* --- Selection highlight (blue → orange after inversion, fix it) --- */
+html.gdocs-dark-targeted .kix-selection-overlay {
+  background-color: rgba(60, 100, 255, 0.35) !important;
+}
+
+/* --- Cursor caret --- */
+html.gdocs-dark-targeted .kix-cursor-caret {
+  border-color: #4a7aff !important;
+}
+
+/* --- Links (inverted blue becomes orange-ish, fix to a nice blue) --- */
+html.gdocs-dark-targeted .kix-lineview a {
+  color: #5b8aff !important;
+}
+
+/* --- Scrollbars --- */
+html.gdocs-dark-targeted ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html.gdocs-dark-targeted ::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+html.gdocs-dark-targeted ::-webkit-scrollbar-thumb {
+  background: #3a3a5e;
+  border-radius: 5px;
+}
+
+html.gdocs-dark-targeted ::-webkit-scrollbar-thumb:hover {
+  background: #5a5a7e;
+}
+
+/* --- Scrollbar for filter strategy too --- */
+html.gdocs-dark-filter ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html.gdocs-dark-filter ::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+html.gdocs-dark-filter ::-webkit-scrollbar-thumb {
+  background: #3a3a5e;
+  border-radius: 5px;
+}
+
+html.gdocs-dark-filter ::-webkit-scrollbar-thumb:hover {
+  background: #5a5a7e;
+}
+
+
+/* ============================================================
+ * TRANSITION
+ * Smooth toggle animation
+ * ============================================================ */
+
+html {
+  transition: filter 0.3s ease;
+}

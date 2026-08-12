@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Dark Mode for Google Docs",
+  "version": "1.0.0",
+  "description": "Adds a togglable dark mode to the Google Docs editor with multiple rendering strategies.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://docs.google.com/document/*"],
+      "js": ["content.js"],
+      "css": ["darkmode.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

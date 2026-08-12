@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dark Mode for Google Docs</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 320px;
+      font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0ec;
+      overflow: hidden;
+    }
+
+    /* ── Header ───────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 18px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .header-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #f0f0fa;
+    }
+
+    .header p {
+      font-size: 11px;
+      color: #8888a8;
+      margin-top: 1px;
+    }
+
+    /* ── Main Toggle ──────────────────────────────────────── */
+    .toggle-section {
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #d0d0e0;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      cursor: pointer;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #2a2a40;
+      border-radius: 12px;
+      transition: background 0.25s ease;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      width: 18px;
+      height: 18px;
+      background: #5a5a7a;
+      border-radius: 50%;
+      transition: transform 0.25s ease, background 0.25s ease;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+      background: #ffffff;
+    }
+
+    /* ── Status Indicator ─────────────────────────────────── */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4a4a60;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .status-dot.active {
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+    }
+
+    .status-text {
+      font-size: 11px;
+      color: #7a7a98;
+    }
+
+    /* ── Strategy Selector ────────────────────────────────── */
+    .section {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6a6a88;
+      margin-bottom: 10px;
+    }
+
+    .strategy-options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .strategy-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #16162a;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .strategy-card:hover {
+      background: #1a1a32;
+    }
+
+    .strategy-card.selected {
+      border-color: #6366f1;
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .strategy-card input[type="radio"] {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #3a3a5a;
+      border-radius: 50%;
+      margin-top: 1px;
+      flex-shrink: 0;
+      transition: border-color 0.2s ease;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .strategy-card input[type="radio"]:checked {
+      border-color: #6366f1;
+    }
+
+    .strategy-card input[type="radio"]:checked::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #6366f1;
+    }
+
+    .strategy-info h3 {
+      font-size: 12px;
+      font-weight: 600;
+      color: #d0d0e0;
+      margin-bottom: 2px;
+    }
+
+    .strategy-info p {
+      font-size: 10.5px;
+      color: #7a7a98;
+      line-height: 1.4;
+    }
+
+    .strategy-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .badge-quick {
+      background: rgba(234, 179, 8, 0.15);
+      color: #eab308;
+    }
+
+    .badge-precise {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+
+    /* ── Notices ──────────────────────────────────────────── */
+    .notice {
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10.5px;
+      color: #7a7a98;
+      background: rgba(99, 102, 241, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .notice-icon {
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .notice.hidden {
+      display: none;
+    }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    .footer {
+      padding: 10px 18px;
+      text-align: center;
+      font-size: 10px;
+      color: #4a4a68;
+    }
+
+    /* ── Not on Docs message ──────────────────────────────── */
+    .not-docs {
+      padding: 30px 18px;
+      text-align: center;
+      display: none;
+    }
+
+    .not-docs.visible {
+      display: block;
+    }
+
+    .not-docs .not-docs-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .not-docs h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #d0d0e0;
+      margin-bottom: 4px;
+    }
+
+    .not-docs p {
+      font-size: 11px;
+      color: #6a6a88;
+      line-height: 1.5;
+    }
+
+    .main-content.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">🌙</div>
+    <div>
+      <h1>Dark Mode for Docs</h1>
+      <p>Comfortable editing, day or night</p>
+    </div>
+  </div>
+
+  <!-- Not on Google Docs message -->
+  <div class="not-docs" id="notDocs">
+    <div class="not-docs-icon">📄</div>
+    <h2>Not on Google Docs</h2>
+    <p>Open a Google Docs document to use dark mode. Navigate to <strong>docs.google.com</strong> to get started.</p>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content" id="mainContent">
+    <!-- Master Toggle -->
+    <div class="toggle-section">
+      <div class="status-row">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-text" id="statusText">Dark mode off</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleDark" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Strategy Selector -->
+    <div class="section">
+      <div class="section-title">Rendering Strategy</div>
+      <div class="strategy-options">
+        <label class="strategy-card selected" id="cardTargeted" data-strategy="targeted">
+          <input type="radio" name="strategy" value="targeted" checked />
+          <div class="strategy-info">
+            <h3>Targeted Override <span class="strategy-badge badge-precise">Recommended</span></h3>
+            <p>Dark backgrounds + light text on each element. Images stay true-color. Canvas tiles use filter fallback.</p>
+          </div>
+        </label>
+        <label class="strategy-card" id="cardFilter" data-strategy="filter">
+          <input type="radio" name="strategy" value="filter" />
+          <div class="strategy-info">
+            <h3>CSS Filter <span class="strategy-badge badge-quick">Quick</span></h3>
+            <p>Inverts the entire editor canvas. Images will appear inverted (Docs renders them as canvas pixels, not &lt;img&gt; tags).</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Image info notice -->
+    <div class="notice" id="imageNotice">
+      <span class="notice-icon">🖼️</span>
+      <span id="imageNoticeText">Targeted mode keeps images true-color. Only canvas-rendered text tiles use filter inversion.</span>
+    </div>
+
+    <!-- Canvas detection notice -->
+    <div class="notice hidden" id="canvasNotice">
+      <span class="notice-icon">ℹ️</span>
+      <span>Canvas rendering detected — text tiles use filter fallback (images in canvas tiles will also be affected).</span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Works on docs.google.com/document/* only
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
