@@ -93,6 +93,29 @@ html.gdocs-dark-targeted .doc-icon img {
   filter: invert(1) hue-rotate(180deg) !important;
 }
 
+/* --- Google Docs Homescreen document previews (Recent documents) ---
+ * Google Docs renders recent document previews as background-image
+ * containers inside grid and list items. Double-invert them so they
+ * match the template gallery in their natural true colors. */
+html.gdocs-dark-targeted .docs-homescreen-grid-item-thumbnail,
+html.gdocs-dark-targeted .docs-homescreen-grid-item-thumbnail-image,
+html.gdocs-dark-targeted .docs-homescreen-list-item-thumbnail,
+html.gdocs-dark-targeted .docs-homescreen-thumbnail,
+html.gdocs-dark-targeted .docs-homescreen-item-thumbnail,
+html.gdocs-dark-targeted [class*="homescreen-grid-item"] [style*="background-image"],
+html.gdocs-dark-targeted [class*="homescreen-list-item"] [style*="background-image"],
+html.gdocs-dark-targeted [class*="homescreen-grid-item-thumbnail"],
+html.gdocs-dark-targeted [class*="homescreen-thumbnail"] {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* Prevent double-inversion on nested <img> tags within thumbnails */
+html.gdocs-dark-targeted .docs-homescreen-grid-item-thumbnail img,
+html.gdocs-dark-targeted .docs-homescreen-list-item-thumbnail img,
+html.gdocs-dark-targeted [class*="homescreen-grid-item-thumbnail"] img {
+  filter: none !important;
+}
+
 
 /* ============================================================
  * FINE-TUNED COLOR CORRECTIONS (Targeted strategy only)

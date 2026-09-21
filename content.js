@@ -40,6 +40,23 @@
     return document.querySelector('.kix-canvas-tile-content') !== null;
   }
 
+  // ── Canvas Hook Inserter (Fallback) ──────────────────────────────
+  function ensureCanvasHook() {
+    if (document.getElementById('gdocs-dark-canvas-hook')) return;
+    try {
+      const script = document.createElement('script');
+      script.id = 'gdocs-dark-canvas-hook';
+      script.src = chrome.runtime.getURL('canvas-hook.js');
+      (document.head || document.documentElement).appendChild(script);
+    } catch (e) {
+      // Handled if already injected via manifest content_scripts world: MAIN
+    }
+  }
+
+  function notifyTileRefresh() {
+    window.dispatchEvent(new CustomEvent('gdocs-dark-refresh-tiles'));
+  }
+
   // ── Apply / Remove Dark Mode ─────────────────────────────────────
   // Classes go on <html> (documentElement) so the filter applies
   // to the ENTIRE page, including all chrome/toolbars.
@@ -58,12 +75,15 @@
     } else {
       root.classList.add(CLASSES.targeted);
     }
+
+    notifyTileRefresh();
   }
 
   function removeDarkMode() {
     const root = document.documentElement;
     if (!root) return;
     root.classList.remove(CLASSES.filter, CLASSES.targeted);
+    notifyTileRefresh();
   }
 
   // ── Storage Read/Write ───────────────────────────────────────────
@@ -205,6 +225,8 @@
 
   // ── Initialization ───────────────────────────────────────────────
   function init() {
+    ensureCanvasHook();
+
     loadState(() => {
       if (currentState.enabled) {
         applyDarkMode();
