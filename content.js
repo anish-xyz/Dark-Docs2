@@ -77,6 +77,7 @@
     }
 
     notifyTileRefresh();
+    fixBackdrops();
   }
 
   function removeDarkMode() {
@@ -84,6 +85,7 @@
     if (!root) return;
     root.classList.remove(CLASSES.filter, CLASSES.targeted);
     notifyTileRefresh();
+    fixBackdrops();
   }
 
   // ── Storage Read/Write ───────────────────────────────────────────
@@ -103,19 +105,64 @@
     );
   }
 
-  // ── MutationObserver ─────────────────────────────────────────────
-  // Google Docs aggressively re-renders DOM nodes on scroll, edit,
-  // and page transitions. We observe the editor container and
-  // re-apply our classes if Docs somehow strips them.
+  // ── Modal & Popup Backdrop Darkening ────────────────────────────
+  function fixBackdrops() {
+    if (!document.body) return;
 
+    if (!currentState.enabled) {
+      document.querySelectorAll('[data-gdocs-dark-backdrop]').forEach((el) => {
+        el.style.removeProperty('filter');
+        el.removeAttribute('data-gdocs-dark-backdrop');
+      });
+      return;
+    }
+
+    // 1. Selector-based search
+    const candidates = document.querySelectorAll(
+      '.modal-dialog-bg, .goog-modal-dialog-bg, .docs-dialog-bg, .apps-dialog-bg, ' +
+      '.docs-material-dialog-bg, .picker-dialog-bg, .mdc-dialog__scrim, ' +
+      '[class*="dialog-bg"], [class*="modal-dialog-bg"], [class*="modal-backdrop"], ' +
+      '[class*="dialog-backdrop"], [class*="scrim"]'
+    );
+    candidates.forEach((el) => {
+      el.style.setProperty('filter', 'invert(1) hue-rotate(180deg)', 'important');
+      el.setAttribute('data-gdocs-dark-backdrop', 'true');
+    });
+
+    // 2. Full-screen overlay detector on body children
+    const children = document.body.children;
+    const minW = window.innerWidth * 0.7;
+    const minH = window.innerHeight * 0.7;
+
+    for (let i = 0; i < children.length; i++) {
+      const el = children[i];
+      if (el.tagName !== 'DIV') continue;
+      if (el.id === 'docs-editor' || el.classList.contains('kix-appview-editor') || el.classList.contains('docs-ui-unprintable')) continue;
+      // Skip the dialog window itself
+      if (el.getAttribute('role') === 'dialog' || el.querySelector('[role="dialog"]') || el.querySelector('.modal-dialog-content')) continue;
+
+      const style = window.getComputedStyle(el);
+      const isPositioned = style.position === 'fixed' || style.position === 'absolute';
+      const isFullScreen = el.offsetWidth >= minW && el.offsetHeight >= minH;
+      const isEmpty = !el.innerText || !el.innerText.trim();
+
+      if (isPositioned && isFullScreen && isEmpty) {
+        el.style.setProperty('filter', 'invert(1) hue-rotate(180deg)', 'important');
+        el.setAttribute('data-gdocs-dark-backdrop', 'true');
+      }
+    }
+  }
+
+  // ── MutationObserver ─────────────────────────────────────────────
   let observer = null;
+  let bodyObserver = null;
 
   function startObserver() {
     if (observer) observer.disconnect();
+    if (bodyObserver) bodyObserver.disconnect();
 
-    // Observe both the editor and the document element
-    const target = document.querySelector('.kix-appview-editor') || document.body;
-
+    // Observe editor container for theme stripping
+    const editorTarget = document.querySelector('.kix-appview-editor') || document.body;
     observer = new MutationObserver(() => {
       if (currentState.enabled) {
         const root = document.documentElement;
@@ -128,10 +175,23 @@
       }
     });
 
-    observer.observe(target, {
+    observer.observe(editorTarget, {
       childList: true,
       subtree: true,
     });
+
+    // Observe document.body specifically for modal popups and dialog backdrops
+    if (document.body) {
+      bodyObserver = new MutationObserver(() => {
+        fixBackdrops();
+      });
+
+      bodyObserver.observe(document.body, {
+        childList: true,
+      });
+
+      fixBackdrops();
+    }
   }
 
   // ── SPA Navigation Handler ───────────────────────────────────────

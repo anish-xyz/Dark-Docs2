@@ -143,6 +143,44 @@ html.gdocs-dark-targeted .kix-lineview a {
   color: #5b8aff !important;
 }
 
+/* --- Modal Dialog & Popup Backdrops (Scrims) ---
+ * Google Docs dims the background behind popups with a translucent backdrop
+ * (.modal-dialog-bg or ::backdrop). Under full-page inversion, the dark backdrop turns
+ * into a milky/lightish fog. Double-inverting it restores its natural dark dimming shade.
+ */
+html.gdocs-dark-targeted dialog::backdrop,
+html.gdocs-dark-filter dialog::backdrop,
+html.gdocs-dark-targeted ::backdrop,
+html.gdocs-dark-filter ::backdrop,
+html.gdocs-dark-targeted [data-gdocs-dark-backdrop],
+html.gdocs-dark-filter [data-gdocs-dark-backdrop],
+html.gdocs-dark-targeted .modal-dialog-bg,
+html.gdocs-dark-filter .modal-dialog-bg,
+html.gdocs-dark-targeted .goog-modal-dialog-bg,
+html.gdocs-dark-filter .goog-modal-dialog-bg,
+html.gdocs-dark-targeted .docs-dialog-bg,
+html.gdocs-dark-filter .docs-dialog-bg,
+html.gdocs-dark-targeted .apps-dialog-bg,
+html.gdocs-dark-filter .apps-dialog-bg,
+html.gdocs-dark-targeted .docs-material-dialog-bg,
+html.gdocs-dark-filter .docs-material-dialog-bg,
+html.gdocs-dark-targeted .picker-dialog-bg,
+html.gdocs-dark-filter .picker-dialog-bg,
+html.gdocs-dark-targeted .mdc-dialog__scrim,
+html.gdocs-dark-filter .mdc-dialog__scrim,
+html.gdocs-dark-targeted [class*="modal-dialog-bg"],
+html.gdocs-dark-filter [class*="modal-dialog-bg"],
+html.gdocs-dark-targeted [class*="dialog-bg"],
+html.gdocs-dark-filter [class*="dialog-bg"],
+html.gdocs-dark-targeted [class*="modal-backdrop"],
+html.gdocs-dark-filter [class*="modal-backdrop"],
+html.gdocs-dark-targeted [class*="dialog-backdrop"],
+html.gdocs-dark-filter [class*="dialog-backdrop"],
+html.gdocs-dark-targeted [class*="scrim"],
+html.gdocs-dark-filter [class*="scrim"] {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
 /* --- Scrollbars ---
  * Note: Under the root filter invert(0.92) hue-rotate(180deg):
  *   - Dark CSS colors invert to LIGHT on screen.
